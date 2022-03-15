@@ -1,3 +1,4 @@
+from cProfile import label
 import numpy as np
 import matplotlib.pyplot as plt
 import nashpy as nash
@@ -53,22 +54,40 @@ solns = compute_ex_post(game)
 # Simulation parameters
 s0 = ("s1",project_risk(1))
 
-sim = lambda opp_type: simulate(s0, game, solns, opp_type)
+seed = None
+n_rollouts_max = 30
 
-# Simulate against cooperative agent
-sim("coop")
+sim = lambda opp_type: simulate(s0, game, solns, opp_type, seed)
+comp_stats = lambda n, opp_type: compute_stats(n, s0, game, solns, opp_type, seed)
 
-# Simulate against adversarial agent
-sim("adv")
+opp_types = ["coop", "adv", "random"]
 
-# Simulate against random agent
-sim("random")
+# Simulate against different agents
+for opp in opp_types:
+    sim(opp)
 
-# # Simulate against random agent
-sim("random")
-# # Simulate against random agent
-sim("random")
-# # Simulate against random agent
-# sim("random")
-# # Simulate against random agent
-# sim("random")
+print("Computing statistics against different agents")
+# Compute statistics for different agents
+res = {opp:[] for opp in opp_types}
+for opp in opp_types:
+    for n in range(1,n_rollouts_max):
+        stats = comp_stats(n,opp)
+        delta = stats["average_reward"]-stats["baseline_reward"]
+        res[opp].append(delta)
+
+print("Plotting results")
+# Plot statistics
+plt.figure()
+plt.title("Average reward - baseline for n rollouts")
+x_vals = range(1,n_rollouts_max)
+for opp in opp_types:
+    res_opp = res[opp]
+    plt.plot(x_vals, res_opp, label=opp)
+plt.plot(x_vals, [-s0[1] for _ in x_vals], label="Initial risk capital")
+plt.xlabel("Number of rollouts")
+plt.ylabel("Average reward - baseline")
+plt.legend()
+plt.show()
+
+# Issues to talk about: projecting onto risk levels when they become negative
+# Memoization

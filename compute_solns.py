@@ -1,3 +1,4 @@
+import re
 import numpy as np
 import matplotlib.pyplot as plt
 import nashpy as nash
@@ -19,7 +20,9 @@ def compute_baseline(game):
                 for j in range(len(robot_actions)):
                     uH = human_actions[i]
                     uR = robot_actions[j]
+                    # print("before: ",s, uH, uR)
                     s_next = transition(s,uH,uR,0)
+                    # print("after: ",s_next)
                     qH = reward(s, uH, uR)[0] + gamma*v_funs_adv[t+1][s_next]
                     A[i,j] = qH
             rps = nash.Game(A)
@@ -110,7 +113,7 @@ def compute_ex_post(game):
 def proj_risk(r,risk_levels):
     return risk_levels[np.argmin([np.abs(r-l) for l in risk_levels])]
 
-def simulate(s0, game, solns, opponent_type, seed=None):
+def simulate(s0, game, solns, opponent_type, seed=None, output=True):
     # Set random seed
     np.random.seed(seed)
 
@@ -123,8 +126,8 @@ def simulate(s0, game, solns, opponent_type, seed=None):
         prob = uHs[t][s]
         prob[prob<0] = 0
         prob /= np.sum(prob)
-        res = np.random.choice(human_actions,p=prob.reshape((len(human_actions))))
-        return res
+        res = np.random.choice(range(len(human_actions)),p=prob.reshape((len(human_actions))))
+        return human_actions[res]
     # Construct robot policy according to type
     pol_R = None
     if opponent_type == "adv":
@@ -132,30 +135,64 @@ def simulate(s0, game, solns, opponent_type, seed=None):
     elif opponent_type == "coop":
         pol_R = lambda t,s: robot_actions[np.argmax(uRs_coop[t][s])]
     elif opponent_type == "random":
-        pol_R = lambda t,s: np.random.choice(robot_actions)
+        pol_R = lambda t,s: robot_actions[np.random.choice(range(len(robot_actions)))]
     else:
         raise Exception("Opponent type not available, select from adv, coop, random.")
 
     proj = lambda r: proj_risk(r,risk_levels)
 
     # Simulate policy
-    print("Testing with " + opponent_type + " agent")
+    if output: print("Testing with " + opponent_type + " agent")
     s = s0
-    print(s)
+    if output: print(s)
+    total_r = 0
     for t in range(T):
         uH_strat = uHs[t][s]
         uH = pol_H(t,s)
         uR = pol_R(t,s)
         uR_adv = robot_actions[np.argmax(uRs_adv[t][s])]
-        dr = reward(s, uH, uR)[0] + gamma*v_funs_adv[t+1][transition(s,uH,uR,0)]-v_funs_adv[t][(s[0],proj(s[1]))]
-        s_next = transition(s,uH,uR,dr,check=True)
+        curr_r = reward(s, uH, uR)[0]
+        total_r += curr_r
 
-        # Calculate amount risked in expectation over strategy
+        # Calculate dr in expectation over my strategy
+        dr = -v_funs_adv[t][(s[0],proj(s[1]))]
+        for i in range(len(human_actions)):
+            h = human_actions[i]
+            dr += uH_strat[i,0]*(reward(s, h, uR)[0] + gamma*v_funs_adv[t+1][transition(s,h,uR,0)])
+
+        s_next = transition(s,uH,uR,dr)
+
+        # Calculate amount risked in expectation over strategy against an adversary
         rsk = -v_funs_adv[t][(s[0],proj(s[1]))] + s[1]
         for i in range(len(human_actions)):
             h = human_actions[i]
             rsk += uH_strat[i,0]*(reward(s, h, uR_adv)[0] + gamma*v_funs_adv[t+1][transition(s,h,uR_adv,0)])
-        print("state=",s_next,", uH=", uH, ", strat=", uH_strat.T, ", uR=", uR,", dr=", dr, ", r+dr=", s[1]+dr, ", constraint=",rsk)
+
+        if output: print("state=",s_next,", uH=", uH, ", strat=", uH_strat.T, ", uR=", uR,", dr=", dr, ", r+dr=", s[1]+dr, ", constraint=",rsk)
         s = s_next
 
-    print()
+    if output: print()
+
+    res = {
+        "total_reward":total_r, "baseline_reward":v_funs_adv[0][s0], "initial_risk":s0[1]
+    }
+
+    return res
+
+def compute_stats(n, s0, game, solns, opponent_type, seed=None):
+    np.random.seed(seed)
+    average_total_reward = 0
+    ress = []
+    baseline_reward = solns["baseline_val"][0][s0]
+
+    # Run n simulations
+    for _ in range(n):
+        res = simulate(s0, game, solns, opponent_type, seed=None, output=False)
+        average_total_reward += res["total_reward"]/n
+        ress.append(res)
+
+    # Compute statistics
+    stats = {"average_reward":average_total_reward, "baseline_reward":baseline_reward}
+
+    return stats
+
