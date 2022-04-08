@@ -10,7 +10,8 @@ from compute_solns import *
 # Set up game
 
 state_names = ["s1"]
-risk_levels = np.linspace(0,100,100)
+round = 2
+risk_levels = np.linspace(0,100,101)
 states = []
 for name in state_names:
     for risk in risk_levels:
@@ -22,14 +23,17 @@ robot_actions = ["S","F"]
 gamma = 1
 T = 10
 
-def project_risk(r):
-    return risk_levels[np.argmin([np.abs(r-l) for l in risk_levels])]
+# def project_risk(r):
+#     r = np.round(r,round)
+#     return np.max([l for l in risk_levels if l <= r ])
+    # return risk_levels[np.argmin([np.abs(r-l) for l in risk_levels])]
 
 def transition(state, uH, uR, dr, check=False):
     s = state[0]
     if check and state[1] + dr < 0:
         print("RIP: Risking more than you've won")
-    r = risk_levels[np.argmin([np.abs(state[1]+dr-l) for l in risk_levels])]
+    # r = risk_levels[np.argmin([np.abs(state[1]+dr-l) for l in risk_levels])]
+    r = proj_risk(state[1]+dr, risk_levels)
     return (s,r)
         
 def reward(state, uH, uR):
@@ -40,10 +44,11 @@ def reward(state, uH, uR):
 
 
 game = {
-    "states":states, "risk_levels":risk_levels,
+    "state_names":state_names, "states":states, "risk_levels":risk_levels,
     "human_actions":human_actions, "robot_actions":robot_actions,
     "transition":transition, "reward":reward,
-    "gamma":gamma, "T":T
+    "gamma":gamma, "T":T,
+    "misc":{"round":round}
 }
 
 # Compute solutions
@@ -52,7 +57,7 @@ solns = compute_ex_post(game)
 # print(solns["adv_val"][0])
 
 # Simulation parameters
-s0 = ("s1",project_risk(1))
+s0 = ("s1",proj_risk(1, risk_levels))
 
 seed = None
 n_rollouts_max = 30
