@@ -1,7 +1,6 @@
 from cProfile import label
 import numpy as np
 import matplotlib.pyplot as plt
-import nashpy as nash
 import itertools
 import cvxpy as cp
 import pickle
@@ -117,7 +116,7 @@ def get_game(return_state):
 
     return game
 
-def run_exp(init_state, init_alpha, init_risk):
+def run_exp(init_state, init_alpha, init_risk, parallel=False):
     return_state = init_state # "HU"
     initial = (init_state, init_alpha) # ("HU", 0.1)
     risk_tol = init_risk # 1.0
@@ -129,14 +128,14 @@ def run_exp(init_state, init_alpha, init_risk):
     print("Checking if solutions exist...")
     try:
         print("Loading solutions...")
-        with open(fname+'.pickle', 'rb') as handle:
+        with open("experiments/"+fname+'.pickle', 'rb') as handle:
             solns = pickle.load(handle)
     except:
         # Compute solutions
         print("No solutions, so now computing solutions...")
-        solns = compute_ex_post(game)
+        solns = compute_ex_post(game, parallel)
         print("Saving solutions")
-        with open(fname+'.pickle', 'wb') as handle:
+        with open("experiments/"+fname+'.pickle', 'wb') as handle:
             pickle.dump(solns, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     print("Done!")
@@ -151,7 +150,7 @@ def run_sim(init_state, init_alpha, init_risk):
 
     game = get_game(return_state)
 
-    fname = "general_example_"+str(return_state)+"_"+str(initial)
+    fname = "experiments/general_example_"+str(return_state)+"_"+str(initial)
     with open(fname+".pickle", 'rb') as handle:
         solns = pickle.load(handle)
 
@@ -160,38 +159,42 @@ def run_sim(init_state, init_alpha, init_risk):
     seed = None
     n_rollouts_max = 20
 
-    sim = lambda opp_type: simulate(s0, game, solns, opp_type, seed)
-    comp_stats = lambda n, opp_type: compute_stats(n, s0, game, solns, opp_type, seed)
+    sim = lambda player_types: simulate(s0, game, solns, player_types, seed)
+    comp_stats = lambda n, player_types: compute_stats(n, s0, game, solns, player_types, seed)
 
-    opp_types = ["coop", "adv", "random"]
+    robot_types = ["coop", "adv", "random"]
+    human_types = ["gift","maximax","baseline"]
+
+    player_types = [(human_type, robot_type) for human_type in human_types for robot_type in robot_types]
 
     # Simulate against different agents
     print("Simulating against different agents")
-    for opp in opp_types:
-        sim(opp)
+    for player_type in player_types:
+        sim(player_type)
 
     print("Computing statistics against different agents")
     # Compute statistics for different agents
-    res = {opp:[] for opp in opp_types}
-    for opp in opp_types:
+    res = {player_type:[] for player_type in player_types}
+    for player_type in player_types:
         for n in range(1,n_rollouts_max):
-            stats = comp_stats(n,opp)
-            delta = stats["average_reward"]-stats["baseline_reward"]
-            res[opp].append(delta)
+            stats = comp_stats(n,player_type)
+            reward = stats["average_reward"]
+            res[player_type].append(reward)
 
     print("Plotting results")
     # Plot statistics
     plt.figure()
-    plt.title("Average reward - baseline for n rollouts")
+    plt.title("Average reward for n rollouts")
     x_vals = range(1,n_rollouts_max)
-    for opp in opp_types:
-        res_opp = res[opp]
-        plt.plot(x_vals, res_opp, label=opp)
-    plt.plot(x_vals, [-s0[1] for _ in x_vals], label="Initial risk capital", alpha=0.7)
+    for player_type in player_types:
+        res_opp = res[player_type]
+        plt.plot(x_vals, res_opp, label=str(player_type), alpha=0.7)
+    # plt.plot(x_vals, [-s0[1] for _ in x_vals], label="Initial risk capital", alpha=0.7)
     plt.xlabel("Number of rollouts")
-    plt.ylabel("Average reward - baseline")
+    plt.ylabel("Average reward")
     plt.legend()
     plt.show()
+    return res
 
 # Issues to talk about: projecting onto risk levels when they become negative
 # Memoization
