@@ -9,3 +9,27 @@ Computing maximax...
 Computing ex post solution...
 Set parameter Username
 Academic license - for non-commercial use only - expires 2023-03-11
+9 for 88.05826878547668 s, 8 for 86.51722478866577 s, 7 for 87.36926198005676 s, 6 for 86.79165601730347 s, 5 for 85.25967693328857 s, 4 for 85.10313606262207 s, 3 for 78.55681490898132 s, 2 for 79.6410231590271 s, 1 for 80.10525703430176 s, 0 for 84.2743570804596 s, Done with ex post!
+Saving solutions
+Done!
+Total Time for experiment: 945.9748642444611
+Running simulation...
+Computing statistics against different agents
+Traceback (most recent call last):
+  File "/Users/anandsranjan/Desktop/hybrid-workspace/epistemic-safety/run_example.py", line 78, in <module>
+    res = manygrid.run_sim_single(initial_state, grid, 5, T=T, name=name)
+  File "/Users/anandsranjan/Desktop/hybrid-workspace/epistemic-safety/manygrid.py", line 423, in run_sim_single
+    stats = comp_stats(n_rollouts_max,player_type)
+  File "/Users/anandsranjan/Desktop/hybrid-workspace/epistemic-safety/manygrid.py", line 412, in <lambda>
+    comp_stats = lambda n, player_types: compute_stats(n, s0, game, solns, player_types, seed)
+  File "/Users/anandsranjan/Desktop/hybrid-workspace/epistemic-safety/compute_solns.py", line 496, in compute_stats
+    res = simulate(s0, game, solns, player_types, seed=None, verbose=False)
+  File "/Users/anandsranjan/Desktop/hybrid-workspace/epistemic-safety/compute_solns.py", line 372, in simulate
+    s_next = transition(s,uH,uR,dr)
+  File "/Users/anandsranjan/Desktop/hybrid-workspace/epistemic-safety/manygrid.py", line 310, in transition
+    eps = self.proj_risk(e + dr, is_gift=is_gift)
+  File "/Users/anandsranjan/Desktop/hybrid-workspace/epistemic-safety/grid_examples.py", line 13, in ret
+    return proj_risk(r,risk_levels,is_gift=is_gift)
+  File "/Users/anandsranjan/Desktop/hybrid-workspace/epistemic-safety/compute_solns.py", line 301, in proj_risk
+    if is_gift: raise Exception("Risk should be positive!")
+Exception: Risk should be positive!
