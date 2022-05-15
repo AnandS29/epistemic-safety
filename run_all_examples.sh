@@ -1,3 +1,5 @@
+#!/bin/sh
+
 for (( i=0; i<25; i++ ))
 do
     echo "Running example $i"
