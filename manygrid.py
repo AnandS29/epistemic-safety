@@ -1,5 +1,6 @@
 import itertools
 from cProfile import label
+from multiprocessing.sharedctypes import Value
 import numpy as np
 import matplotlib.pyplot as plt
 import itertools
@@ -52,6 +53,12 @@ class Square(Object):
         self.value = value
         self.is_taken = False
 
+    def interact(self, action):
+        if self.is_taken is True:
+            return 0
+        self.is_taken = True
+        return self.value
+
 class Wall(Object):
     def __init__(self, name):
         super().__init__(name)
@@ -60,6 +67,20 @@ class Player(Object):
     def __init__(self, name, position):
         super().__init__(name)
         self.position = position
+
+class Choice(Square):
+    def __init__(self, name, value):
+        super().__init__(name, value)
+
+    def interact(self, action):
+        if self.is_taken is True:
+            return 0
+        self.is_taken = True
+        if action == 'P':
+            return self.value
+        else:
+            return -1*self.value
+        
 
 class ManyGrid:
     def __init__(self, rows, cols, proj_risk, risk_levels, initial_player_loc=None, keep_time=None):
@@ -79,7 +100,7 @@ class ManyGrid:
         else:
             self.time = None
 
-        self.actions = ['U', 'D', 'L', 'R', 'S', None]
+        self.actions = ['U', 'D', 'L', 'R', 'P', 'N', None] # Up Down Left Right Positive/Negative Interact Pickup Noop
         
         self.initial_state = None
 
@@ -99,11 +120,11 @@ class ManyGrid:
                 values[loc[0]][loc[1]] = 1
             elif self.check_item(loc,Wall):
                 values[loc[0]][loc[1]] = 2
-            elif self.check_item(loc,Door):
+            elif self.check_item(loc,Door) or self.check_item(loc,OpenDoor) or self.check_item(loc,CloseDoor):
                 values[loc[0]][loc[1]] = 3
             elif self.check_item(loc,Button):
                 values[loc[0]][loc[1]] = 4
-            elif self.check_item(loc,Square):
+            elif self.check_item(loc,Square) or self.check_item(loc,Choice):
                 values[loc[0]][loc[1]] = 5
         return values
 
@@ -179,6 +200,10 @@ class ManyGrid:
         self.squares[name] = Square(name, value)
         self.grid[(row,col)].append(self.squares[name])
 
+    def addChoice(self, name, row, col, value):
+        self.squares[name] = Choice(name, value)
+        self.grid[(row,col)].append(self.squares[name])
+
     def addWall(self, row, col):
         self.grid[(row,col)].append(Wall("w"))
 
@@ -208,7 +233,7 @@ class ManyGrid:
 
     def check_open(self, loc):
         for item in self.grid[loc]:
-            if type(item) == Door and item.is_open:
+            if (type(item) == Door or type(item) == OpenDoor or type(item) == CloseDoor) and item.is_open:
                 return True
         return False
 
@@ -217,15 +242,33 @@ class ManyGrid:
             if type(item) == Button:
                 return item
 
+    def get_square(self, loc):
+        for item in self.grid[loc]:
+            if type(item) == Square or type(item) == Choice:
+                return item
+
+    def is_door(self, loc):
+        if self.check_item(loc,Door) or self.check_item(loc,OpenDoor) or self.check_item(loc,CloseDoor):
+            return True
+        return False
+
+    def is_square(self, loc):
+        if self.check_item(loc,Square) or self.check_item(loc,Choice):
+            return True
+        return False
+
     def transition_single(self, h, uH):
         if uH in ['U', 'D', 'L', 'R']:
             next_pos = self.next_pos(uH, h.position)
-            if not self.check_item(next_pos,Wall) and (len(self.grid[next_pos]) == 0 or (self.check_item(next_pos,Door) and self.check_open(next_pos)) or self.check_item(next_pos,Button) or self.check_item(next_pos,Square)):
+            if not self.check_item(next_pos,Wall) and (len(self.grid[next_pos]) == 0 or (self.is_door(next_pos) and self.check_open(next_pos)) or self.check_item(next_pos,Button) or self.is_square(next_pos)):
                 self.move_player(h, next_pos)
-        elif uH in ['S']:
+        elif uH in ['P', 'N']:
             if self.check_item(h.position,Button):
                 button = self.get_button(h.position)
                 button.door.toggle()
+            elif self.is_square(h.position):
+                square = self.get_square(h.position)
+                square.interact(uH)
         
     def get_state(self):
         state = []
@@ -270,15 +313,15 @@ class ManyGrid:
         h = self.players['H']
         r = self.players['R']
 
-        # Check if objects to take in current square
-        if self.check_item(self.players['H'].position, Square):
-            for item in self.grid[self.players['H'].position]:
-                if type(item) == Square and not item.is_taken:
-                    item.is_taken = True
-        if self.check_item(self.players['R'].position, Square):
-            for item in self.grid[self.players['R'].position]:
-                if type(item) == Square and not item.is_taken:
-                    item.is_taken = True
+        # # Check if objects to take in current square
+        # if self.check_item(self.players['H'].position, Square):
+        #     for item in self.grid[self.players['H'].position]:
+        #         if type(item) == Square and not item.is_taken:
+        #             item.is_taken = True
+        # if self.check_item(self.players['R'].position, Square):
+        #     for item in self.grid[self.players['R'].position]:
+        #         if type(item) == Square and not item.is_taken:
+        #             item.is_taken = True
 
         # Move players
         self.transition_single(h, uH)
@@ -286,16 +329,25 @@ class ManyGrid:
         return self.get_state()
 
     def reward(self, state, uH, uR):
+        h = self.players['H']
+        r = self.players['R']
+        player_actions = [(h,uH), (r,uR)]
         self.set_state(state)
         value = 0
-        if self.check_item(self.players['H'].position, Square):
-            for item in self.grid[self.players['H'].position]:
-                if type(item) == Square and not item.is_taken:
-                    value += item.value
-        if self.check_item(self.players['R'].position, Square):
-            for item in self.grid[self.players['R'].position]:
-                if type(item) == Square and not item.is_taken:
-                    value += item.value
+        for (p, u) in player_actions:
+            if u in ['P', 'N'] and self.is_square(p.position):
+                square = self.get_square(p.position)
+                value += square.interact(u)
+
+        # if self.check_item(self.players['H'].position, Square):
+        #     for item in self.grid[self.players['H'].position]:
+        #         if type(item) == Square and not item.is_taken:
+        #             value += item.value
+        # if self.check_item(self.players['R'].position, Square):
+        #     for item in self.grid[self.players['R'].position]:
+        #         if type(item) == Square and not item.is_taken:
+        #             value += item.value
+        
         return (value,value,value)
 
     def run_traj(self,initial_state, actions):
@@ -304,8 +356,9 @@ class ManyGrid:
         state = initial_state
         print(state)
         for action in actions:
-            state = self.transition(state, action[0], action[1], 0)
+            next_state = self.transition(state, action[0], action[1], 0)
             r = self.reward(state, action[0], action[1])
+            state = next_state
             self.set_state(state)
             print(state, r)
             self.render()

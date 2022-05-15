@@ -347,12 +347,12 @@ def simulate(s0, game, solns, player_types, seed=None, verbose=False):
 
     # Simulate
     v_funs_adv, uRs_adv = solns["baseline_val"], solns["r_adv_actions"]
-    print(player_types)
+    if verbose: print(player_types)
     if player_types[0] == "gift":
         # Simulate policy
         # print("Testing with " + str(player_types) + " agent")
         s = s0
-        print(s)
+        if verbose: print(s)
         total_r = 0
         for t in range(T):
             # print(uHs[t].keys())
@@ -377,7 +377,7 @@ def simulate(s0, game, solns, player_types, seed=None, verbose=False):
                 h = human_actions[i]
                 rsk += uH_strat[i,0]*(reward(s, h, uR_adv)[0] + gamma*v_funs_adv[t+1][transition(s,h,uR_adv,0,is_gift=False)[0]])
 
-            if True or verbose: print("state=",s_next,", uH=", uH, ", strat=", uH_strat.T, ", uR=", uR,", dr=", dr, ", r+dr=", s[1]+dr, ", constraint=",rsk, ", v_adv=", v_funs_adv[t][s[0]])
+            if verbose: print("state=",s_next,", uH=", uH, ", strat=", uH_strat.T, ", uR=", uR,", dr=", dr, ", r+dr=", s[1]+dr, ", constraint=",rsk, ", v_adv=", v_funs_adv[t][s[0]])
             # for i in range(len(human_actions)):
             #     h = human_actions[i]
             #     q_h = reward(s, h, uR_adv)[0] + gamma*v_funs_adv[t+1][transition(s,h,uR_adv,0)[0]]
@@ -389,19 +389,19 @@ def simulate(s0, game, solns, player_types, seed=None, verbose=False):
         # Simulate policy
         # print("Testing with " + str(player_types) + " agent")
         s = s0[0]
-        print(s)
+        if verbose: print(s)
         total_r = 0
         for t in range(T):
             uH_strat = uHs[t][s]
             uH = pol_H(t,s)
             uR = pol_R(t,s)
             curr_r = reward((s,0), uH, uR)
-            print(curr_r)
+            if verbose: print(curr_r)
             total_r += curr_r[0]
 
             s_next = transition((s,0),uH,uR,0,is_gift=False)[0]
 
-            print("state=",s_next,", uH=", uH, ", strat=", uH_strat.T, ", uR=", uR, "total_r=", total_r)
+            if verbose: print("state=",s_next,", uH=", uH, ", strat=", uH_strat.T, ", uR=", uR, "total_r=", total_r)
             s = s_next
 
     if verbose: print()
