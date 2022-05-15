@@ -295,10 +295,12 @@ def compute_ex_post(game, parallel=False):
 def proj_risk(r,risk_levels,round=2,is_gift=True):
     # factor = 10**round
     # r = math.floor(factor*r)/factor
-    if np.abs(r) <= 1e-6: r = 0
+    if np.abs(r) <= 1e-1: r = 0
     if r < 0: 
         # print(r)
-        if is_gift: raise Exception("Risk should be positive!")
+        if is_gift: 
+            print(r)
+            raise Exception("Risk should be positive!")
         return np.min(risk_levels)
     # print(r)
     return np.max([l for l in risk_levels if l <= r ])
@@ -323,6 +325,7 @@ def simulate(s0, game, solns, player_types, seed=None, verbose=False):
         prob = uHs[t][s]
         prob[prob<0] = 0
         prob /= np.sum(prob)
+        # print(uHs[t][s].T,prob.T)
         res = np.random.choice(range(len(human_actions)),p=prob.reshape((len(human_actions))))
         return human_actions[res]
 
@@ -347,6 +350,7 @@ def simulate(s0, game, solns, player_types, seed=None, verbose=False):
 
     # Simulate
     v_funs_adv, uRs_adv = solns["baseline_val"], solns["r_adv_actions"]
+    # verbose = True
     if verbose: print(player_types)
     if player_types[0] == "gift":
         # Simulate policy
