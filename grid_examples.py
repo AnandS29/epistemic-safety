@@ -200,7 +200,7 @@ def twice_empowered():
 # Gain RC to Spend Examples
 
 def gain_3():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 6,9
@@ -249,7 +249,7 @@ def gain_3():
     return grid
 
 def gain_2():
-    risk_levels = np.linspace(0,9,10)
+    risk_levels = np.linspace(0,9,19)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 6,6
@@ -293,7 +293,7 @@ def gain_2():
     return grid
 
 def gain_1():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 6,6
@@ -328,7 +328,7 @@ def gain_1():
     return grid
 
 def gain():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 6,6
@@ -367,7 +367,7 @@ def gain():
 # Reduce Cost Examples
 
 def reduce_3():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 6,7
@@ -408,7 +408,7 @@ def reduce_3():
     return grid
 
 def reduce_2():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 6,7
@@ -454,7 +454,7 @@ def reduce_2():
     return grid
 
 def reduce_1():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 6,7
@@ -496,7 +496,7 @@ def reduce_1():
     return grid
 
 def reduce():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 6,7
@@ -540,7 +540,7 @@ def reduce():
 # Spend RC Examples
 
 def spend_3():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 6,7
@@ -585,7 +585,7 @@ def spend_3():
     return grid
 
 def spend_2():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 6,8
@@ -628,7 +628,7 @@ def spend_2():
     return grid
 
 def spend_1():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 6,8
@@ -672,7 +672,7 @@ def spend_1():
     return grid
 
 def spend():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 6,5
@@ -709,7 +709,7 @@ def spend():
 # Goods Examples
 
 def goods_robot_reward():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 5,4
@@ -740,7 +740,7 @@ def goods_robot_reward():
     return grid
 
 def goods_robot_empowers_human():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 5,5
@@ -774,7 +774,7 @@ def goods_robot_empowers_human():
     return grid
 
 def goods_robot_disempowers_robots_ability_to_disempower():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 5,7
@@ -812,7 +812,7 @@ def goods_robot_disempowers_robots_ability_to_disempower():
     return grid
 
 def goods_robot_disempowers_robot():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 5,6
@@ -848,7 +848,7 @@ def goods_robot_disempowers_robot():
     return grid
 
 def goods_robot_disempowers_robot_regularized():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 5,6
@@ -886,7 +886,7 @@ def goods_robot_disempowers_robot_regularized():
 # Bads Examples
 
 def bads_robot_punish():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 5,4
@@ -917,7 +917,7 @@ def bads_robot_punish():
     return grid
 
 def bads_robot_empowers_robot_ability_to_disempower():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 5,7
@@ -955,7 +955,7 @@ def bads_robot_empowers_robot_ability_to_disempower():
     return grid
 
 def bads_robot_empowers_robot():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 5,6
@@ -991,7 +991,7 @@ def bads_robot_empowers_robot():
     return grid
 
 def bads_robot_disempowers_human():
-    risk_levels = np.linspace(0,5,6)
+    risk_levels = np.linspace(0,5,11)
     proj_risk_l = p(risk_levels)
 
     rows, cols = 5,6

@@ -399,7 +399,7 @@ def run_exp(grid, game, gamma=1.0, T=10, parallel=False, name="manygrid_example"
     print("Done!")
 
 # Simulation parameters
-def run_sim_single(initial, grid, n_rollouts_max=20, gamma=0.9, T=10, seed=None, name="manygrid_example"):
+def run_sim_single(initial, grid, n_rollouts_max=20, gamma=1.0, T=10, seed=None, name="manygrid_example"):
     game = get_game(grid, gamma, T)
 
     fname = "experiments/"+name
@@ -427,7 +427,7 @@ def run_sim_single(initial, grid, n_rollouts_max=20, gamma=0.9, T=10, seed=None,
 
     return res
 
-def run_sim(initial, grid, n_rollouts_max=20, gamma=0.9, T=10, seed=None, name="manygrid_example"):
+def run_sim(initial, grid, n_rollouts_max=20, gamma=1.0, T=10, seed=None, name="manygrid_example"):
     game = get_game(grid, gamma, T)
 
     fname = "experiments/"+name

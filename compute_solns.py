@@ -295,7 +295,7 @@ def compute_ex_post(game, parallel=False):
 def proj_risk(r,risk_levels,round=2,is_gift=True):
     # factor = 10**round
     # r = math.floor(factor*r)/factor
-    if np.abs(r) <= 1e-1: r = 0
+    if np.abs(r) <= 1e-5: r = 0
     if r < 0: 
         # print(r)
         if is_gift: 
