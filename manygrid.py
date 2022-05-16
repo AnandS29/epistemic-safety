@@ -391,7 +391,7 @@ def run_exp(grid, game, gamma=1.0, T=10, parallel=False, name="manygrid_example"
     except:
         # Compute solutions
         print("No solutions, so now computing solutions...")
-        solns = compute_ex_post(game,parallel)
+        solns = compute_ex_post(game,parallel,save=fname)
         print("Saving solutions")
         with open("experiments/"+fname+'.pickle', 'wb') as handle:
             pickle.dump(solns, handle, protocol=pickle.HIGHEST_PROTOCOL)

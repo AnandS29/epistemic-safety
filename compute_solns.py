@@ -10,6 +10,7 @@ import gurobipy
 import math
 from joblib import Parallel, delayed
 import time
+import pickle
 # from multiprocessing import Pool
 from multiprocessing.pool import ThreadPool as Pool
 import os
@@ -222,7 +223,7 @@ def compute_maximax(game):
     return v_funs, uHs, uRs_coop, uRs_adv
 
 # Try on iterated RPS <- risk capital should go negative
-def compute_ex_post(game, parallel=False):
+def compute_ex_post(game, parallel=False, save=None):
     # Unpack
     states,human_actions,robot_actions,transition,reward,gamma,T = game["states"],game["human_actions"],game["robot_actions"],game["transition"],game["reward"],game["gamma"],game["T"]
 
@@ -264,6 +265,12 @@ def compute_ex_post(game, parallel=False):
             pool.close()
         else:
             results = [f(state) for state in states]
+
+        if save is not None:
+            print("Saving results at time "+str(t)+" ...")
+            with open("experiments/"+save+'_'+str(t)+'.pickle', 'wb') as handle:
+                pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
         for i in range(len(results)):
             s = states[i]
             v_funs[t][s] = results[i][0]
@@ -276,12 +283,6 @@ def compute_ex_post(game, parallel=False):
         print(t, "for",end-start,"s", end=", ")
         t = t - 1
     print("Done with ex post!")
-    # solns = {
-    #     "baseline_val":v_funs_adv, "ex_post_val":v_funs, "adv_val":v_funs_adv_p, "maximax_val":v_funs_maximax,
-    #     "r_adv_actions":uRs_adv, "r_coop_actions":uRs_coop, "h_actions":uHs,
-    #     "h_base_actions":uHs_adv, "r_base_actions":uRs_adv, "r_base_coop_actions":uRs_adv_coop,
-    #     "h_maximax_actions":uHs_maximax, "r_maximax_actions":uRs_maximax, "h_maximax_adv_actions":uRs_maximax_adv
-    # }
 
     solns = {
         "baseline_val":v_funs_adv, "ex_post_val":v_funs, "adv_val":v_funs_adv_p, "maximax_val":v_funs_maximax,
