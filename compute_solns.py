@@ -266,11 +266,6 @@ def compute_ex_post(game, parallel=False, save=None):
         else:
             results = [f(state) for state in states]
 
-        if save is not None:
-            print("Saving results at time "+str(t)+" ...")
-            with open("experiments/"+save+'_'+str(t)+'.pickle', 'wb') as handle:
-                pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
         for i in range(len(results)):
             s = states[i]
             v_funs[t][s] = results[i][0]
@@ -278,6 +273,27 @@ def compute_ex_post(game, parallel=False, save=None):
             uRs_adv[t][s] = results[i][2]
             uRs_coop[t][s] = results[i][3]
             uHs[t][s] = results[i][4]
+
+        if save is not None:
+            print("Saving results at time "+str(t)+" ...")
+            solns_t = {
+                "states": states,
+                "v_funs": v_funs[t],
+                "v_funs_adv_p": v_funs_adv_p[t],
+                "uHs": uHs[t],
+                "uRs_adv": uRs_adv[t],
+                "uRs_coop": uRs_coop[t],
+                "uRs_maximax": uRs_maximax[t],
+                "uRs_maximax_adv": uRs_maximax_adv[t],
+                "uHs_maximax": uHs_maximax[t],
+                "uHs_adv": uHs_adv[t],
+                "uRs_adv_coop": uRs_adv_coop[t],
+                "uRs_adv_coop": uRs_adv_coop[t],
+                "v_funs_maximax": v_funs_maximax[t],
+                "v_funs_adv": v_funs_adv[t]
+            }
+            with open("experiments/"+save+'_'+str(t)+'.pickle', 'wb') as handle:
+                pickle.dump(solns_t, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
         end = time.time()
         print(t, "for",end-start,"s", end=", ")
