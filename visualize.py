@@ -66,3 +66,4 @@ c  = [i[1] for i in z]
 plt.figure(figsize=(20,5))
 plt.bar(x,y)
 plt.errorbar(x, y, yerr=c, fmt="o", color="r")
+plt.show()
