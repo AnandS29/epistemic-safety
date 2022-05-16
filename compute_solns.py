@@ -335,7 +335,7 @@ def simulate(s0, game, solns, player_types, seed=None, verbose=False):
         if player_types[0] == "gift":
             uRs = solns["r_adv_actions"]
         else:
-            uRs = get_adv_pol(game, uHs)
+            uRs = adv_pol(game, uHs)
         pol_R = lambda t,s: robot_actions[np.argmax(uRs[t][s])]
     elif player_types[1] == "coop":
         if player_types[0] == "gift":
