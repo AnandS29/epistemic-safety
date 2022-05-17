@@ -28,8 +28,9 @@ def process(s,t,states,human_actions,robot_actions,transition,reward,gamma,T,v_f
             dr = v_funs_adv[t+1][transition(s,uH,uR,0)[0]] + reward(s, uH, uR)[0] - v_funs_adv[t][s[0]]
             # if (s[1]+dr) < 0 and not isclose(0,s[1]+dr): print(s, uH, uR, v_funs_adv[t][s[0]], transition(s,uH,uR,0)[0], v_funs_adv[t+1][transition(s,uH,uR,0)[0]])
             if (s[1]+dr) < 0 and not (np.abs(s[1]+dr) <= 1e-6):
-                A_S[i,j] = -1e5 # very not optimal
-                A_H[i,j] = 1e5 # but feasible
+                A_S[i,j] = -1e10 # very not optimal
+                A_H[i,j] = -1e10 # not feasible
+                # print("neg: ", s, uH, uR)
             else:
                 s_next = transition(s,uH,uR,dr)
                 q_coop = reward(s, uH, uR)[0] + gamma*v_funs[t+1][s_next]
@@ -52,6 +53,13 @@ def process(s,t,states,human_actions,robot_actions,transition,reward,gamma,T,v_f
         val_j = prob.solve(solver=cp.GUROBI)
         vals.append(val_j)
         p_Hs.append(p_H.value)
+
+    if False and t==1 and s==("s1",0.0):
+        print(A_H)
+        print(A_S)
+        print(vals)
+        print([(p.T, p.T @ A_H[:,0] - v_funs_adv[t][s[0]] + s[1], p.T @ A_H[:,1] - v_funs_adv[t][s[0]] + s[1])  for p in p_Hs])
+        print("constraint:",v_funs_adv[t][s[0]] - s[1])
 
     try:
         opt_val = np.max(vals)
@@ -386,9 +394,12 @@ def simulate(s0, game, solns, player_types, seed=None, verbose=False):
 
             # Calculate dr in expectation over my strategy
             dr = -v_funs_adv[t][s[0]]
+            print(dr)
             for i in range(len(human_actions)):
                 h = human_actions[i]
-                dr += uH_strat[i,0]*(reward(s, h, uR)[0] + gamma*v_funs_adv[t+1][transition(s,h,uR,0,is_gift=False)[0]])
+                val = reward(s, h, uR)[0] + gamma*v_funs_adv[t+1][transition(s,h,uR,0,is_gift=False)[0]]
+                print(val, h, uH_strat[i,0])
+                dr += uH_strat[i,0]*(val)
 
             s_next = transition(s,uH,uR,dr)
 
